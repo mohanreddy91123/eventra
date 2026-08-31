@@ -1,3 +1,7 @@
+import type { RowDataPacket, ResultSetHeader, FieldPacket } from 'mysql2';
+
+export type { RowDataPacket, ResultSetHeader, FieldPacket };
+
 export type UserRole = 'STUDENT' | 'TEACHER' | 'EDUCELL';
 
 export interface User {

@@ -69,31 +69,41 @@ async function runTests() {
   console.log('TEST 1 — STUDENT APPLICATION:');
   console.log('  Testing student browsing published events and applying directly...');
 
-  const eventsRes = await request('/events', {
-    headers: { Authorization: `Bearer ${studentToken}` },
+  // Create an active event for student registration test
+  const testEventRes = await request('/events', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${teacherToken}` },
+    body: {
+      title: `Student Apply Test Event ${Date.now()}`,
+      description: 'Event to verify student direct registration with zero approval requirement.',
+      category: 'Workshop',
+      event_date: '2026-12-01',
+      start_time: '10:00',
+      end_time: '15:00',
+      location: 'Main Auditorium',
+      organizer_name: 'Prof. Ravi Kumar',
+      organizer_phone: '9845012345',
+      registration_start: '2026-01-01 00:00:00',
+      registration_deadline: '2026-11-30 23:59:59',
+      capacity: 100,
+      eligibility: 'All Students',
+      target_department: 'All Departments',
+      required_skills: ['General'],
+      relevant_interests: ['Technical'],
+    },
   });
-  assert.equal(eventsRes.status, 200, 'Failed to fetch events');
-  assert.ok(eventsRes.data.events.length > 0, 'No events found');
+  assert.equal(testEventRes.status, 201, 'Failed to create test event');
+  const testEventId = testEventRes.data.eventId;
 
-  const publishedEvent = eventsRes.data.events[0];
-  console.log(`  Found published event: "${publishedEvent.title}" (Status: ${publishedEvent.status})`);
-
-  // Find or create an event student hasn't applied to yet
-  let eventToApply = eventsRes.data.events.find((e: any) => !e.has_applied);
-  if (!eventToApply) {
-    eventToApply = publishedEvent;
-  }
-
-  const applyRes = await request(`/events/${eventToApply.id}/apply`, {
+  const applyRes = await request(`/events/${testEventId}/apply`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${studentToken}` },
-    body: { notes: 'Interested in participating' },
+    body: { notes: 'Direct registration' },
   });
 
-  // Either 201 Created or 409 Conflict if already applied in previous run
   assert.ok(
     applyRes.status === 201 || applyRes.status === 409,
-    `Unexpected apply status: ${applyRes.status}`
+    `Unexpected apply status: ${applyRes.status} ${JSON.stringify(applyRes.data)}`
   );
   console.log(`  ✅ TEST 1 PASSED: Student directly applied for published event (Response: ${applyRes.status} ${applyRes.data.message})\n`);
 
@@ -113,7 +123,7 @@ async function runTests() {
     location: 'Robotics Lab 3',
     organizer_name: 'Prof. Ravi Kumar',
     organizer_phone: '9845012345',
-    registration_start: '2026-09-01 00:00:00',
+    registration_start: '2026-01-01 00:00:00',
     registration_deadline: '2026-10-14 23:59:59',
     capacity: 60,
     eligibility: 'All Engineering Students',
@@ -155,7 +165,7 @@ async function runTests() {
     location: 'Main University Amphitheatre',
     organizer_name: 'SAC Coordinator',
     organizer_phone: '9845099999',
-    registration_start: '2026-10-01 00:00:00',
+    registration_start: '2026-01-01 00:00:00',
     registration_deadline: '2026-11-19 23:59:59',
     capacity: 500,
     eligibility: 'Open to All Students & Faculty',

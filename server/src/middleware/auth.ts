@@ -12,6 +12,10 @@ declare global {
   }
 }
 
+export interface AuthRequest extends Request {
+  user?: AuthJWTPayload;
+}
+
 const JWT_SECRET = process.env.JWT_SECRET || 'eventra_super_secure_jwt_secret_key_2026_campus_platform';
 
 /**
