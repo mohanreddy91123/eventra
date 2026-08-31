@@ -47,13 +47,28 @@ app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+// Health check endpoints (Root, /health, /api/health)
+const healthHandler = (req: express.Request, res: express.Response) => {
   res.status(200).json({
     status: 'ok',
     service: 'Eventra API',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
+  });
+};
+
+app.get('/api/health', healthHandler);
+app.get('/health', healthHandler);
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'Eventra API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      events: '/api/events',
+      auth: '/api/auth',
+    },
   });
 });
 

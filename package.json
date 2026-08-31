@@ -4,14 +4,18 @@
   "description": "Eventra - Production Full-Stack AI-Powered Campus Event Discovery and Management Platform",
   "private": true,
   "scripts": {
+    "postinstall": "cd server && npm install",
+    "build": "cd server && npm run build",
+    "start": "cd server && npm start",
+    "dev": "npm --prefix server run dev",
     "dev:server": "npm --prefix server run dev",
     "dev:client": "npm --prefix client run dev",
     "build:server": "npm --prefix server run build",
     "build:client": "npm --prefix client run build",
-    "build": "npm run build:server && npm run build:client",
     "db:init": "npm --prefix server run db:init",
     "db:seed": "npm --prefix server run db:seed",
-    "test:server": "npx tsx server/src/tests/integration.test.ts"
+    "test": "npm --prefix server test",
+    "test:server": "npm --prefix server test"
   },
   "keywords": [
     "campus-events",
