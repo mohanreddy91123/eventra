@@ -12,11 +12,11 @@ const __dirname = path.dirname(__filename);
 export async function initDatabase() {
   console.log('🚀 Initializing Eventra Database...');
 
-  const dbHost = process.env.DB_HOST || 'localhost';
-  const dbPort = parseInt(process.env.DB_PORT || '3306', 10);
-  const dbUser = process.env.DB_USER || 'root';
-  const dbPassword = process.env.DB_PASSWORD || '';
-  const dbName = process.env.DB_NAME || 'eventra_db';
+  const dbHost = process.env.DB_HOST || process.env.MYSQLHOST || 'localhost';
+  const dbPort = parseInt(process.env.DB_PORT || process.env.MYSQLPORT || '3306', 10);
+  const dbUser = process.env.DB_USER || process.env.MYSQLUSER || 'root';
+  const dbPassword = process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : (process.env.MYSQLPASSWORD || '');
+  const dbName = process.env.DB_NAME || process.env.MYSQLDATABASE || 'eventra_db';
 
   let connection;
   try {

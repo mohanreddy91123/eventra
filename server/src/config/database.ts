@@ -3,12 +3,18 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const dbHost = process.env.DB_HOST || process.env.MYSQLHOST || 'localhost';
+const dbPort = parseInt(process.env.DB_PORT || process.env.MYSQLPORT || '3306', 10);
+const dbUser = process.env.DB_USER || process.env.MYSQLUSER || 'root';
+const dbPassword = process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : (process.env.MYSQLPASSWORD || '');
+const dbName = process.env.DB_NAME || process.env.MYSQLDATABASE || 'eventra_db';
+
 const dbConfig: mysql.PoolOptions = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '3306', 10),
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'eventra_db',
+  host: dbHost,
+  port: dbPort,
+  user: dbUser,
+  password: dbPassword,
+  database: dbName,
   waitForConnections: true,
   connectionLimit: 15,
   queueLimit: 0,
@@ -22,10 +28,10 @@ export const pool = mysql.createPool(dbConfig);
 // Helper for single connection without selecting database (used during database creation/init)
 export const createAdminConnection = async () => {
   return await mysql.createConnection({
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '3306', 10),
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
+    host: dbHost,
+    port: dbPort,
+    user: dbUser,
+    password: dbPassword,
     ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
   });
 };
@@ -33,11 +39,11 @@ export const createAdminConnection = async () => {
 export const testConnection = async (): Promise<boolean> => {
   try {
     const connection = await pool.getConnection();
-    console.log('✅ Connected to MySQL Database:', dbConfig.database);
+    console.log(`✅ Connected to MySQL Database: ${dbName} (${dbHost}:${dbPort})`);
     connection.release();
     return true;
   } catch (error) {
-    console.error('❌ Failed to connect to MySQL database:', error);
+    console.error(`❌ Failed to connect to MySQL database at ${dbHost}:${dbPort}:`, error);
     return false;
   }
 };
