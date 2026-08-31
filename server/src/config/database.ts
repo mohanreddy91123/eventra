@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const dbConfig = {
+const dbConfig: mysql.PoolOptions = {
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '3306', 10),
   user: process.env.DB_USER || 'root',
@@ -14,6 +14,7 @@ const dbConfig = {
   queueLimit: 0,
   timezone: '+00:00',
   dateStrings: true,
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
 };
 
 export const pool = mysql.createPool(dbConfig);
@@ -25,6 +26,7 @@ export const createAdminConnection = async () => {
     port: parseInt(process.env.DB_PORT || '3306', 10),
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
   });
 };
 

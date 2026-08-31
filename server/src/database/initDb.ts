@@ -6,6 +6,9 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export async function initDatabase() {
   console.log('🚀 Initializing Eventra Database...');
 
@@ -23,6 +26,7 @@ export async function initDatabase() {
       user: dbUser,
       password: dbPassword,
       multipleStatements: true,
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
     });
 
     console.log(`📡 Connected to MySQL Server on ${dbHost}:${dbPort}`);
@@ -33,8 +37,12 @@ export async function initDatabase() {
 
     await connection.query(`USE \`${dbName}\`;`);
 
-    // Read and run schema.sql
-    const schemaPath = path.join(process.cwd(), 'src', 'database', 'schema.sql');
+    // Locate schema.sql reliably
+    let schemaPath = path.join(__dirname, 'schema.sql');
+    if (!fs.existsSync(schemaPath)) {
+      schemaPath = path.join(process.cwd(), 'src', 'database', 'schema.sql');
+    }
+
     if (fs.existsSync(schemaPath)) {
       const sql = fs.readFileSync(schemaPath, 'utf-8');
       await connection.query(sql);

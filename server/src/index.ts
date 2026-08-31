@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const PORT = parseInt(process.env.PORT || '5000', 10);
+const HOST = '0.0.0.0';
 
 async function startServer() {
   console.log('🚀 Starting Eventra Server...');
@@ -14,9 +15,9 @@ async function startServer() {
     console.warn('⚠️ Warning: Database connection failed. Please ensure MySQL is running.');
   }
 
-  app.listen(PORT, () => {
-    console.log(`🌟 Eventra Backend is running on http://localhost:${PORT}`);
-    console.log(`📡 Health check available at: http://localhost:${PORT}/api/health`);
+  app.listen(PORT, HOST, () => {
+    console.log(`🌟 Eventra Backend is running on http://${HOST}:${PORT}`);
+    console.log(`📡 Health check available at: http://${HOST}:${PORT}/api/health`);
   });
 }
 
