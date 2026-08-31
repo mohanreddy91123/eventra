@@ -1,25 +1,22 @@
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
+import { resolveDatabaseConfig } from '../config/database.js';
 
 dotenv.config();
 
 async function alterEnum() {
-  const dbHost = process.env.DB_HOST || process.env.MYSQLHOST || 'localhost';
-  const dbPort = parseInt(process.env.DB_PORT || process.env.MYSQLPORT || '3306', 10);
-  const dbUser = process.env.DB_USER || process.env.MYSQLUSER || 'root';
-  const dbPassword = process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : (process.env.MYSQLPASSWORD || '');
-  const dbName = process.env.DB_NAME || process.env.MYSQLDATABASE || 'eventra_db';
+  const config = resolveDatabaseConfig();
 
   const connection = await mysql.createConnection({
-    host: dbHost,
-    port: dbPort,
-    user: dbUser,
-    password: dbPassword,
-    database: dbName,
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+    host: config.host,
+    port: config.port,
+    user: config.user,
+    password: config.password,
+    database: config.database,
+    ssl: config.ssl,
   });
 
-  console.log(`Connected to MySQL to update enum at ${dbHost}:${dbPort}...`);
+  console.log(`Connected to MySQL to update enum at ${config.host}:${config.port} as '${config.user}'...`);
   await connection.query(`
     ALTER TABLE events 
     MODIFY COLUMN status ENUM('PUBLISHED', 'UPCOMING', 'ONGOING', 'COMPLETED', 'CANCELLED') DEFAULT 'PUBLISHED';

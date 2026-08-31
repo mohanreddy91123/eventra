@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
+import { resolveDatabaseConfig } from '../config/database.js';
 
 dotenv.config();
 
@@ -12,30 +13,26 @@ const __dirname = path.dirname(__filename);
 export async function initDatabase() {
   console.log('🚀 Initializing Eventra Database...');
 
-  const dbHost = process.env.DB_HOST || process.env.MYSQLHOST || 'localhost';
-  const dbPort = parseInt(process.env.DB_PORT || process.env.MYSQLPORT || '3306', 10);
-  const dbUser = process.env.DB_USER || process.env.MYSQLUSER || 'root';
-  const dbPassword = process.env.DB_PASSWORD !== undefined ? process.env.DB_PASSWORD : (process.env.MYSQLPASSWORD || '');
-  const dbName = process.env.DB_NAME || process.env.MYSQLDATABASE || 'eventra_db';
+  const config = resolveDatabaseConfig();
 
   let connection;
   try {
     connection = await mysql.createConnection({
-      host: dbHost,
-      port: dbPort,
-      user: dbUser,
-      password: dbPassword,
+      host: config.host,
+      port: config.port,
+      user: config.user,
+      password: config.password,
       multipleStatements: true,
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+      ssl: config.ssl,
     });
 
-    console.log(`📡 Connected to MySQL Server on ${dbHost}:${dbPort}`);
+    console.log(`📡 Connected to MySQL Server on ${config.host}:${config.port} as '${config.user}'`);
 
     // Create database if not exists
-    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
-    console.log(`📁 Database '${dbName}' verified/created.`);
+    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${config.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+    console.log(`📁 Database '${config.database}' verified/created.`);
 
-    await connection.query(`USE \`${dbName}\`;`);
+    await connection.query(`USE \`${config.database}\`;`);
 
     // Locate schema.sql reliably
     let schemaPath = path.join(__dirname, 'schema.sql');
@@ -51,7 +48,7 @@ export async function initDatabase() {
       console.warn('⚠️ schema.sql file not found at:', schemaPath);
     }
   } catch (error: any) {
-    console.error('❌ Database initialization error:', error.message);
+    console.error(`❌ Database initialization error on ${config.host}:${config.port} as '${config.user}':`, error.message);
     throw error;
   } finally {
     if (connection) {
