@@ -1,8 +1,6 @@
 -- Eventra Database Schema
 -- Campus Event Discovery and Management Platform
-
-CREATE DATABASE IF NOT EXISTS eventra_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE eventra_db;
+-- Tables are created in the active connection database
 
 -- 1. Users Table
 CREATE TABLE IF NOT EXISTS users (

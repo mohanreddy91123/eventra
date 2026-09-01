@@ -19,11 +19,23 @@ export async function initDatabase() {
     connection = await createAdminConnection();
     console.log('📡 Connected to MySQL Server successfully for schema initialization.');
 
-    // If discrete database is configured, ensure it exists and select it
-    if (config.database) {
-      await connection.query(`CREATE DATABASE IF NOT EXISTS \`${config.database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
-      await connection.query(`USE \`${config.database}\`;`);
-      console.log(`📁 Database '${config.database}' ready.`);
+    // Determine target database name from discrete config or URI
+    let targetDb: string | undefined = config.database;
+    if (!targetDb && config.uri) {
+      try {
+        const parsed = new URL(config.uri.replace(/^mysql2:\/\//, 'mysql://'));
+        if (parsed.pathname && parsed.pathname.length > 1) {
+          targetDb = parsed.pathname.replace(/^\//, '');
+        }
+      } catch {
+        // ignore URL parse error
+      }
+    }
+
+    if (targetDb) {
+      await connection.query(`CREATE DATABASE IF NOT EXISTS \`${targetDb}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
+      await connection.query(`USE \`${targetDb}\`;`);
+      console.log(`📁 Target database '${targetDb}' selected and ready.`);
     }
 
     // Locate schema.sql reliably

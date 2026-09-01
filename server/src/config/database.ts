@@ -21,8 +21,19 @@ export function getDatabaseConfig(): mysql.PoolOptions {
   // PRIORITY 1: Direct MySQL Connection URL (e.g. Railway MySQL Service)
   if (connectionUrl && (connectionUrl.startsWith('mysql://') || connectionUrl.startsWith('mysql2://'))) {
     const cleanUrl = connectionUrl.replace(/^mysql2:\/\//, 'mysql://');
+    let dbNameFromUri: string | undefined;
+    try {
+      const parsed = new URL(cleanUrl);
+      if (parsed.pathname && parsed.pathname.length > 1) {
+        dbNameFromUri = parsed.pathname.replace(/^\//, '');
+      }
+    } catch {
+      // ignore
+    }
+
     return {
       uri: cleanUrl,
+      database: dbNameFromUri || 'railway',
       waitForConnections: true,
       connectionLimit: 15,
       queueLimit: 0,
