@@ -132,41 +132,97 @@ npm test
 
 ---
 
-## 🐳 Docker Deployment (1-Command)
+## 🚀 Complete Production Cloud Deployment Guide
 
-```bash
-docker-compose up --build -d
+Follow these simple steps to deploy Eventra to **Railway (Backend & MySQL)** and **Vercel (Frontend)**.
+
+```mermaid
+flowchart LR
+    User[Browser / Students] -->|HTTPS| Vercel[Vercel\nReact Vite Frontend]
+    Vercel -->|REST API /api| Railway[Railway\nExpress Backend]
+    Railway -->|MySQL Protocol| RailwayMySQL[Railway\nMySQL 8.0 Database]
 ```
-- **Frontend**: `http://localhost:5173`
-- **Backend API**: `http://localhost:5000`
-- **MySQL Database**: `localhost:3306`
 
 ---
 
-## 🚀 Production Cloud Deployment (Vercel + Render + Railway/Aiven)
+### Step 1: Push Code to GitHub
 
-### 1. Database (Railway / Aiven / PlanetScale MySQL)
-- Provision a MySQL 8.0 instance.
-- Run `npm run db:init && npm run db:seed` against your cloud database URL.
+```powershell
+cd C:\Users\HP\.gemini\antigravity\scratch\eventra
+git add .
+git commit -m "feat: complete production deployment configuration"
+git push origin main
+```
 
-### 2. Backend (Render / Railway)
-- **Root Directory**: `server`
-- **Build Command**: `npm install && npm run build`
-- **Start Command**: `npm start`
-- **Environment Variables**:
-  - `NODE_ENV=production`
-  - `PORT=5000`
-  - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_SSL=true`
-  - `JWT_SECRET=your_production_secret`
-  - `FRONTEND_URL=https://your-frontend-domain.vercel.app`
+---
 
-### 3. Frontend (Vercel / Netlify)
-- **Root Directory**: `client`
-- **Framework Preset**: `Vite`
-- **Build Command**: `npm run build`
-- **Output Directory**: `dist`
-- **Environment Variables**:
-  - `VITE_API_URL=https://your-render-backend.onrender.com/api`
+### Step 2: Deploy MySQL Database on Railway
+
+1. Log into **[https://railway.com](https://railway.com)** with GitHub.
+2. Open your project (or click **New Project** $\rightarrow$ **Provision MySQL**).
+3. Click on your **MySQL** service card $\rightarrow$ click the **"Variables"** tab to view your generated credentials (`MYSQL_URL`, `MYSQLPASSWORD`, etc.).
+
+---
+
+### Step 3: Deploy Backend API on Railway
+
+1. In the same Railway project, click **"+ Create"** / **"New Service"** $\rightarrow$ **GitHub Repo** $\rightarrow$ select your `eventra` repository.
+2. Click on the new **eventra** service card $\rightarrow$ go to **Settings**:
+   - **Root Directory**: `server`
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm start`
+3. Go to the **"Variables"** tab $\rightarrow$ click **"New Variable"** (or **"Raw Editor"**) and configure:
+
+| Variable Name | Value |
+| :--- | :--- |
+| `NODE_ENV` | `production` |
+| `HOST` | `0.0.0.0` |
+| `DB_SSL` | `false` |
+| `MYSQL_URL` | `${{MySQL.MYSQL_URL}}` *(or `${{MySQL.DATABASE_URL}}`)* |
+| `JWT_SECRET` | *(Enter a custom random secret string)* |
+| `JWT_EXPIRES_IN` | `7d` |
+| `FRONTEND_URL` | `*` *(or your Vercel URL once created)* |
+
+4. Go to **Settings** $\rightarrow$ **Networking** $\rightarrow$ click **"Generate Domain"** to get your public backend URL (e.g. `https://eventra-production-xxxx.up.railway.app`).
+5. Verify health check: Open `https://eventra-production-xxxx.up.railway.app/api/health` in your browser.
+
+---
+
+### Step 4: Initialize Cloud Database & Seed Demo Data
+
+From your local machine in `server/`, run:
+```powershell
+# In server/.env, set MYSQL_URL to your Railway public MySQL URL (or discrete host/password)
+npm run db:init
+npm run db:seed
+```
+
+---
+
+### Step 5: Deploy Frontend on Vercel
+
+1. Log into **[https://vercel.com](https://vercel.com)** with GitHub.
+2. Click **"Add New..."** $\rightarrow$ **"Project"** $\rightarrow$ Import your **`eventra`** repository.
+3. Configure project settings:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: Click **Edit** $\rightarrow$ select `client`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. Expand **"Environment Variables"**:
+   - **Key**: `VITE_API_URL`
+   - **Value**: `https://eventra-production-xxxx.up.railway.app/api` *(Your Railway Backend URL + `/api`)*
+5. Click **Deploy**.
+6. Vercel will build and assign your production URL (e.g. `https://eventra.vercel.app`).
+
+---
+
+### Step 6: Verify Live Production Platform
+
+1. Open your Vercel URL (`https://eventra.vercel.app`).
+2. Test **1-Click Demo Login** for:
+   - **Student**: `aarav.sharma@campus.edu` (1-click direct event registration)
+   - **Teacher**: `prof.ravi.kumar@campus.edu` (direct event creation & SAC request review)
+   - **Edu Cell / SAC**: `sac.coordinator@campus.edu` (submit event proposal & publish upon approval)
 
 ---
 
